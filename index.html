@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>شرکت مجازی هوش مصنوعی | AI Virtual Company</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      overflow: hidden;
+      background: #0a0e17;
+      font-family: 'Vazirmatn', system-ui, sans-serif;
+      color: #e8f0ff;
+    }
+    
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+    
+    /* Overlay UI */
+    #ui {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+    
+    .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 18px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(to bottom, rgba(10,14,23,0.85), transparent);
+      pointer-events: auto;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #00d4ff, #7b5cff);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      box-shadow: 0 0 20px rgba(0,212,255,0.4);
+    }
+    
+    .logo h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #00d4ff, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .logo p {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-top: 2px;
+    }
+    
+    .stats-bar {
+      display: flex;
+      gap: 18px;
+      font-size: 0.85rem;
+    }
+    
+    .stat {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 8px 14px;
+      border-radius: 10px;
+      backdrop-filter: blur(8px);
+    }
+    
+    .stat strong {
+      color: #00d4ff;
+      margin-left: 6px;
+    }
+    
+    /* Floating department cards */
+    .dept-card {
+      position: absolute;
+      background: rgba(15, 20, 35, 0.82);
+      border: 1px solid rgba(0, 212, 255, 0.25);
+      border-radius: 16px;
+      padding: 14px 16px;
+      min-width: 180px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+      pointer-events: auto;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      cursor: pointer;
+    }
+    
+    .dept-card:hover {
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 12px 40px rgba(0,212,255,0.25), 0 0 0 1px rgba(0,212,255,0.4);
+    }
+    
+    .dept-card .title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .dept-card .agents {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #00d4ff;
+      line-height: 1;
+    }
+    
+    .dept-card .agents span {
+      font-size: 0.8rem;
+      font-weight: 400;
+      opacity: 0.7;
+      margin-right: 4px;
+    }
+    
+    .dept-card .metrics {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      opacity: 0.85;
+      display: grid;
+      gap: 4px;
+    }
+    
+    .dept-card .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    
+    /* Central brain panel */
+    .brain-panel {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 14, 23, 0.9);
+      border: 1px solid rgba(123, 92, 255, 0.4);
+      border-radius: 20px;
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 0 40px rgba(123,92,255,0.2);
+      pointer-events: auto;
+    }
+    
+    .brain-icon {
+      width: 48px;
+      height: 48px;
+      background: radial-gradient(circle, #7b5cff, #00d4ff);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(123,92,255,0.5); }
+      50% { box-shadow: 0 0 0 12px rgba(123,92,255,0); }
+    }
+    
+    .brain-info h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+    }
+    
+    .brain-info p {
+      font-size: 0.8rem;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+    
+    .controls-hint {
+      position: absolute;
+      bottom: 28px;
+      right: 28px;
+      font-size: 0.75rem;
+      opacity: 0.5;
+      background: rgba(0,0,0,0.4);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    
+    /* Loading */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #0a0e17;
+      display: grid;
+      place-items: center;
+      z-index: 100;
+      transition: opacity 0.6s ease;
+    }
+    
+    #loader.hidden { opacity: 0; pointer-events: none; }
+    
+    .loader-content {
+      text-align: center;
+    }
+    
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(0,212,255,0.2);
+      border-top-color: #00d4ff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div id="loader">
+    <div class="loader-content">
+      <div class="spinner"></div>
+      <div>در حال بارگذاری دفتر مجازی...</div>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <div id="ui">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">◈</div>
+        <div>
+          <h1>شرکت مجازی هوش مصنوعی</h1>
+          <p>ساخت سایت • اپلیکیشن • کدنویسی</p>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat">کل ایجنت‌ها <strong id="total-agents">32</strong></div>
+        <div class="stat">وضعیت <strong style="color:#4ade80">فعال</strong></div>
+      </div>
+    </div>
+
+    <!-- Department cards will be positioned by JS -->
+    <div id="cards-container"></div>
+
+    <div class="brain-panel">
+      <div class="brain-icon">🧠</div>
+      <div class="brain-info">
+        <h3>مرکز فرماندهی شرکت</h3>
+        <p>۲ ایجنت مدیریت • همه بخش‌ها متصل</p>
+      </div>
+    </div>
+
+    <div class="controls-hint">
+      چرخش: درگ موس • زوم: اسکرول
+    </div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+    // ========== Scene Setup ==========
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0a0e17);
+    scene.fog = new THREE.FogExp2(0x0a0e17, 0.018);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(18, 16, 18);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    container.appendChild(renderer.domElement);
+
+    // CSS2D for labels
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0';
+    labelRenderer.domElement.style.pointerEvents = 'none';
+    container.appendChild(labelRenderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.minDistance = 10;
+    controls.maxDistance = 45;
+    controls.maxPolarAngle = Math.PI / 2.1;
+    controls.target.set(0, 1, 0);
+
+    // ========== Lights ==========
+    const ambient = new THREE.AmbientLight(0x406080, 0.45);
+    scene.add(ambient);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.1);
+    dirLight.position.set(12, 20, 8);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.near = 1;
+    dirLight.shadow.camera.far = 60;
+    dirLight.shadow.camera.left = -25;
+    dirLight.shadow.camera.right = 25;
+    dirLight.shadow.camera.top = 25;
+    dirLight.shadow.camera.bottom = -25;
+    scene.add(dirLight);
+
+    const point1 = new THREE.PointLight(0x00d4ff, 1.2, 30);
+    point1.position.set(0, 8, 0);
+    scene.add(point1);
+
+    const point2 = new THREE.PointLight(0x7b5cff, 0.8, 25);
+    point2.position.set(-8, 6, 8);
+    scene.add(point2);
+
+    // ========== Ground / Grid ==========
+    const grid = new THREE.GridHelper(50, 50, 0x1a2a40, 0x0f1825);
+    grid.position.y = -0.5;
+    scene.add(grid);
+
+    // Soft floor plane
+    const floorGeo = new THREE.PlaneGeometry(60, 60);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0x0c1220,
+      roughness: 0.9,
+      metalness: 0.1
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = -0.51;
+    floor.receiveShadow = true;
+    scene.add(floor);
+
+    // ========== Helper: Create Platform ==========
+    function createPlatform(x, z, size = 4.5, color = 0x1a2438) {
+      const group = new THREE.Group();
+      group.position.set(x, 0, z);
+
+      // Base platform
+      const platformGeo = new THREE.BoxGeometry(size, 0.35, size);
+      const platformMat = new THREE.MeshStandardMaterial({
+        color,
+        roughness: 0.35,
+        metalness: 0.4
+      });
+      const platform = new THREE.Mesh(platformGeo, platformMat);
+      platform.position.y = 0.2;
+      platform.castShadow = true;
+      platform.receiveShadow = true;
+      group.add(platform);
+
+      // Glow edge
+      const edgeGeo = new THREE.BoxGeometry(size + 0.15, 0.08, size + 0.15);
+      const edgeMat = new THREE.MeshBasicMaterial({
+        color: 0x00d4ff,
+        transparent: true,
+        opacity: 0.25
+      });
+      const edge = new THREE.Mesh(edgeGeo, edgeMat);
+      edge.position.y = 0.05;
+      group.add(edge);
+
+      return group;
+    }
+
+    // ========== Helper: Create Desk ==========
+    function createDesk(x, z, rotation = 0) {
+      const desk = new THREE.Group();
+      desk.position.set(x, 0.4, z);
+      desk.rotation.y = rotation;
+
+      // Desk top
+      const topGeo = new THREE.BoxGeometry(1.1, 0.08, 0.7);
+      const topMat = new THREE.MeshStandardMaterial({ color: 0x2a3548, roughness: 0.5 });
+      const top = new THREE.Mesh(topGeo, topMat);
+      top.position.y = 0.55;
+      top.castShadow = true;
+      desk.add(top);
+
+      // Legs
+      const legGeo = new THREE.BoxGeometry(0.08, 0.5, 0.08);
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x1a2230 });
+      [[-0.45, -0.25], [0.45, -0.25], [-0.45, 0.25], [0.45, 0.25]].forEach(([lx, lz]) => {
+        const leg = new THREE.Mesh(legGeo, legMat);
+        leg.position.set(lx, 0.25, lz);
+        desk.add(leg);
+      });
+
+      // Monitor
+      const monGeo = new THREE.BoxGeometry(0.7, 0.45, 0.04);
+      const monMat = new THREE.MeshStandardMaterial({
+        color: 0x111820,
+        emissive: 0x00aaff,
+        emissiveIntensity: 0.35
+      });
+      const monitor = new THREE.Mesh(monGeo, monMat);
+      monitor.position.set(0, 0.85, -0.2);
+      desk.add(monitor);
+
+      // Screen glow
+      const screenGeo = new THREE.PlaneGeometry(0.62, 0.38);
+      const screenMat = new THREE.MeshBasicMaterial({
+        color: 0x00d4ff,
+        transparent: true,
+        opacity: 0.15
+      });
+      const screen = new THREE.Mesh(screenGeo, screenMat);
+      screen.position.set(0, 0.85, -0.175);
+      desk.add(screen);
+
+      // Chair (simple)
+      const seatGeo = new THREE.BoxGeometry(0.45, 0.08, 0.45);
+      const seat = new THREE.Mesh(seatGeo, new THREE.MeshStandardMaterial({ color: 0x1e2a3a }));
+      seat.position.set(0, 0.35, 0.55);
+      desk.add(seat);
+
+      return desk;
+    }
+
+    // ========== Departments Data ==========
+    const departments = [
+      {
+        id: 'coding',
+        name: 'اتاق کدنویسی',
+        nameEn: 'Coding Lab',
+        agents: 10,
+        color: 0x00d4ff,
+        pos: [8, 0, 0],
+        metrics: ['پروژه‌های فعال: ۱۲', 'کدهای امروز: ۸۴۰ خط', 'باگ‌های رفع‌شده: ۲۳'],
+        icon: '💻'
+      },
+      {
+        id: 'finance',
+        name: 'مدیریت مالی',
+        nameEn: 'Finance',
+        agents: 5,
+        color: 0x4ade80,
+        pos: [-6, 0, 6],
+        metrics: ['فاکتور صادر: ۲۸', 'پرداخت‌شده: ۳۳', 'درآمد ماه: $۱۲.۴K'],
+        icon: '💰'
+      },
+      {
+        id: 'content',
+        name: 'تولید محتوا',
+        nameEn: 'Content Studio',
+        agents: 10,
+        color: 0xf472b6,
+        pos: [-6, 0, -6],
+        metrics: ['پست اینستا: ۱۸', 'پیام تلگرام: ۴۲', 'بازدید امروز: ۹.۲K'],
+        icon: '📱'
+      },
+      {
+        id: 'support',
+        name: 'پشتیبانی مشتری',
+        nameEn: 'Customer Support',
+        agents: 5,
+        color: 0xfbbf24,
+        pos: [6, 0, -7],
+        metrics: ['چت فعال: ۷', 'پاسخ‌داده‌شده: ۶۴', 'رضایت: ۹۴٪'],
+        icon: '🎧'
+      },
+      {
+        id: 'management',
+        name: 'مدیریت کل',
+        nameEn: 'HQ Management',
+        agents: 2,
+        color: 0xa78bfa,
+        pos: [0, 0, 0],
+        metrics: ['دستورات امروز: ۱۵', 'هماهنگی بخش‌ها: ۱۰۰٪'],
+        icon: '🧠',
+        isCenter: true
+      }
+    ];
+
+    const platforms = {};
+    const connectionLines = [];
+
+    // Create departments
+    departments.forEach((dept, i) => {
+      const size = dept.isCenter ? 5.5 : 4.8;
+      const platform = createPlatform(dept.pos[0], dept.pos[2], size, 0x152030);
+      platforms[dept.id] = platform;
+      scene.add(platform);
+
+      // Add desks
+      const deskCount = Math.min(dept.agents, 8);
+      const radius = dept.isCenter ? 1.6 : 1.5;
+      for (let d = 0; d < deskCount; d++) {
+        const angle = (d / deskCount) * Math.PI * 2;
+        const dx = Math.cos(angle) * radius;
+        const dz = Math.sin(angle) * radius;
+        const desk = createDesk(dx, dz, -angle + Math.PI);
+        platform.add(desk);
+      }
+
+      // Floating label (CSS2D)
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'dept-card';
+      labelDiv.innerHTML = `
+        <div class="title">
+          <span class="dot" style="background:${'#' + dept.color.toString(16).padStart(6,'0')}"></span>
+          ${dept.icon} ${dept.name}
+        </div>
+        <div class="agents">${dept.agents} <span>ایجنت</span></div>
+        <div class="metrics">
+          ${dept.metrics.map(m => `<div>• ${m}</div>`).join('')}
+        </div>
+      `;
+      labelDiv.style.borderColor = '#' + dept.color.toString(16).padStart(6,'0') + '55';
+      
+      const label = new CSS2DObject(labelDiv);
+      label.position.set(0, dept.isCenter ? 3.2 : 2.6, 0);
+      platform.add(label);
+
+      // Glow light above platform
+      const light = new THREE.PointLight(dept.color, 0.7, 8);
+      light.position.set(0, 3, 0);
+      platform.add(light);
+    });
+
+    // ========== Central Brain Sphere ==========
+    const brainGroup = new THREE.Group();
+    brainGroup.position.set(0, 4.5, 0);
+    scene.add(brainGroup);
+
+    const brainGeo = new THREE.IcosahedronGeometry(0.9, 2);
+    const brainMat = new THREE.MeshStandardMaterial({
+      color: 0x7b5cff,
+      emissive: 0x7b5cff,
+      emissiveIntensity: 0.6,
+      roughness: 0.2,
+      metalness: 0.8,
+      wireframe: false
+    });
+    const brain = new THREE.Mesh(brainGeo, brainMat);
+    brainGroup.add(brain);
+
+    // Outer wireframe
+    const wireGeo = new THREE.IcosahedronGeometry(1.15, 1);
+    const wireMat = new THREE.MeshBasicMaterial({
+      color: 0x00d4ff,
+      wireframe: true,
+      transparent: true,
+      opacity: 0.3
+    });
+    const wire = new THREE.Mesh(wireGeo, wireMat);
+    brainGroup.add(wire);
+
+    // ========== Particles & Connections ==========
+    // Connection lines between center and rooms
+    const lineMat = new THREE.LineBasicMaterial({
+      color: 0x00d4ff,
+      transparent: true,
+      opacity: 0.35
+    });
+
+    departments.forEach(dept => {
+      if (dept.isCenter) return;
+      const points = [
+        new THREE.Vector3(0, 3.5, 0),
+        new THREE.Vector3(dept.pos[0] * 0.6, 2.5, dept.pos[2] * 0.6),
+        new THREE.Vector3(dept.pos[0], 1.8, dept.pos[2])
+      ];
+      const curve = new THREE.CatmullRomCurve3(points);
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(curve.getPoints(30));
+      const line = new THREE.Line(lineGeo, lineMat.clone());
+      scene.add(line);
+      connectionLines.push(line);
+    });
+
+    // Particle system (floating data particles)
+    const particleCount = 180;
+    const particlesGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const speeds = [];
+
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 30;
+      positions[i * 3 + 1] = Math.random() * 12 + 0.5;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+
+      const c = new THREE.Color().setHSL(0.55 + Math.random() * 0.2, 0.8, 0.6);
+      colors[i * 3] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+
+      speeds.push({
+        y: 0.004 + Math.random() * 0.01,
+        x: (Math.random() - 0.5) * 0.008,
+        z: (Math.random() - 0.5) * 0.008
+      });
+    }
+
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const particlesMat = new THREE.PointsMaterial({
+      size: 0.12,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.7,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false
+    });
+
+    const particles = new THREE.Points(particlesGeo, particlesMat);
+    scene.add(particles);
+
+    // ========== Animation Loop ==========
+    let time = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      time += 0.01;
+
+      // Brain rotation & pulse
+      brain.rotation.y += 0.006;
+      brain.rotation.x = Math.sin(time * 0.5) * 0.1;
+      wire.rotation.y -= 0.004;
+      wire.rotation.z += 0.003;
+      brainGroup.position.y = 4.5 + Math.sin(time * 1.2) * 0.15;
+
+      // Particles movement
+      const pos = particles.geometry.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        pos[i * 3] += speeds[i].x;
+        pos[i * 3 + 1] += speeds[i].y;
+        pos[i * 3 + 2] += speeds[i].z;
+
+        if (pos[i * 3 + 1] > 13) pos[i * 3 + 1] = 0.5;
+        if (Math.abs(pos[i * 3]) > 16) speeds[i].x *= -1;
+        if (Math.abs(pos[i * 3 + 2]) > 16) speeds[i].z *= -1;
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+
+      // Subtle platform float
+      Object.values(platforms).forEach((p, idx) => {
+        p.position.y = Math.sin(time * 0.8 + idx * 1.2) * 0.08;
+      });
+
+      // Line opacity pulse
+      connectionLines.forEach((line, i) => {
+        line.material.opacity = 0.2 + Math.sin(time * 2 + i) * 0.15;
+      });
+
+      controls.update();
+      renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
+    }
+
+    // ========== Resize ==========
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Start
+    document.getElementById('loader').classList.add('hidden');
+    animate();
+  </script>
+</body>
+</html>
